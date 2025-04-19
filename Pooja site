@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POOJA VIDEOS</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f4; }
+    .video-container { margin: 20px 0; }
+    iframe { width: 100%; max-width: 600px; height: 350px; }
+    button { padding: 10px 20px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>POOJA VIDEOS</h1>
+  <div id="user-section">
+    <input type="email" id="email" placeholder="Email" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="login()">Login / Signup</button>
+    <p id="user-info"></p>
+  </div>  <div id="videos" style="display:none">
+    <div class="video-container" data-id="video1">
+      <h3>Sample Video 1</h3>
+      <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allow="autoplay" allowfullscreen></iframe>
+    </div>
+  </div>  <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    function login() {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      auth.signInWithEmailAndPassword(email, password)
+        .catch(() => auth.createUserWithEmailAndPassword(email, password))
+        .then((user) => {
+          document.getElementById("user-info").innerText = `Logged in as ${auth.currentUser.email}`;
+          document.getElementById("videos").style.display = 'block';
+          startTracking();
+        });
+    }
+
+    function startTracking() {
+      const videoContainer = document.querySelector(".video-container");
+      const videoId = videoContainer.dataset.id;
+      let secondsWatched = 0;
+
+      const interval = setInterval(() => {
+        secondsWatched++;
+        if (secondsWatched % 5 === 0) {
+          db.collection("watchData").add({
+            user: auth.currentUser.email,
+            video: videoId,
+            watched: secondsWatched,
+            timestamp: new Date()
+          });
+        }
+      }, 1000);
+    }
+  </script></body>
+</html>
